@@ -1,3 +1,9 @@
+# html-lite-capture
+
+Firefox extension : Select blocks on page & copy simplified HTML
+
+**Repository:** [https://github.com/Pierre-LHOSTE/html-lite-capture](https://github.com/Pierre-LHOSTE/html-lite-capture)
+
 # Build Instructions
 
 ## Installation & Build
