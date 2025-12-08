@@ -1,0 +1,10 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Le bloc central (l'élément HTML) -->
+  <rect x="22" y="22" width="20" height="20" rx="2" fill="#2563eb" fill-opacity="0.2" stroke="#2563eb" stroke-width="3"/>
+  
+  <!-- Les coins de visée -->
+  <path d="M16 12H8V20" stroke="#374151" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M48 12H56V20" stroke="#374151" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16 52H8V44" stroke="#374151" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M48 52H56V44" stroke="#374151" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
