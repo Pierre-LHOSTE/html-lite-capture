@@ -8,10 +8,9 @@ let lastHovered: Element | null = null;
 let selectedElements: Element[] = [];
 let toolbarPanel: HTMLElement | null = null;
 
-// Styles CSS
 function injectStyles(): void {
 	if (document.getElementById("html-capture-styles")) {
-		return; // Déjà injecté
+		return;
 	}
 
 	const style = document.createElement("style");
@@ -113,7 +112,6 @@ function injectStyles(): void {
 	document.head.appendChild(style);
 }
 
-// Retirer les styles CSS
 function removeStyles(): void {
 	const style = document.getElementById("html-capture-styles");
 	if (style) {
@@ -121,7 +119,6 @@ function removeStyles(): void {
 	}
 }
 
-// Créer le panneau UI
 function createToolbarPanel(): void {
 	if (toolbarPanel) {
 		return;
@@ -166,7 +163,6 @@ function createToolbarPanel(): void {
 	updateToolbarCount();
 }
 
-// Supprimer le panneau
 function removeToolbarPanel(): void {
 	if (toolbarPanel) {
 		toolbarPanel.remove();
@@ -174,7 +170,6 @@ function removeToolbarPanel(): void {
 	}
 }
 
-// Mettre à jour le compteur
 function updateToolbarCount(): void {
 	if (!toolbarPanel) return;
 
@@ -194,7 +189,6 @@ function updateToolbarCount(): void {
 	}
 }
 
-// Vérifier si un élément est un bloc
 const BLOCK_TAGS = new Set([
 	"div",
 	"section",
@@ -221,7 +215,6 @@ function isBlockElement(el: Element): boolean {
 	return BLOCK_TAGS.has(tag);
 }
 
-// Trouver le bloc parent le plus proche
 function getBlockCandidate(start: Element): Element | null {
 	let el: Element | null = start;
 	while (el) {
@@ -233,19 +226,16 @@ function getBlockCandidate(start: Element): Element | null {
 	return null;
 }
 
-// Vérifier si un élément est dans le panneau
 function isInToolbar(element: Element | null): boolean {
 	if (!element || !toolbarPanel) return false;
 	return toolbarPanel.contains(element);
 }
 
-// Gérer le hover
 function handleMouseMove(e: MouseEvent): void {
 	if (!selectionMode) return;
 
 	const target = e.target as Element;
 
-	// Ignorer les événements dans le panneau
 	if (isInToolbar(target)) {
 		if (lastHovered) {
 			lastHovered.classList.remove("html-capture-hover");
@@ -269,14 +259,11 @@ function handleMouseMove(e: MouseEvent): void {
 	lastHovered = candidate;
 }
 
-// Gérer le clic (Shift+clic pour sélectionner)
 function handleClick(e: MouseEvent): void {
 	if (!selectionMode) return;
-	if (!e.shiftKey) return;
 
 	const target = e.target as Element;
 
-	// Ignorer les clics dans le panneau
 	if (isInToolbar(target)) {
 		return;
 	}
@@ -302,10 +289,8 @@ function handleClick(e: MouseEvent): void {
 	updateToolbarCount();
 }
 
-// Empêcher la navigation sur les liens
 function handleLinkClick(e: MouseEvent): void {
 	if (!selectionMode) return;
-	if (e.shiftKey) return;
 
 	const target = e.target as HTMLElement;
 	const link = target.closest("a");
@@ -317,20 +302,17 @@ function handleLinkClick(e: MouseEvent): void {
 	}
 }
 
-// Obtenir uniquement les éléments de plus haut niveau
 function getTopLevelSelectedElements(): Element[] {
-	// Ne garder que les éléments qui ne sont pas contenus dans un autre élément sélectionné
 	return selectedElements.filter(
 		(el) =>
 			!selectedElements.some((other) => other !== el && other.contains(el)),
 	);
 }
 
-// Générer et copier le HTML
 async function handleGenerate(): Promise<void> {
 	if (selectedElements.length === 0) return;
 
-	// On ne génère que les éléments top-level pour éviter les doublons
+	// Generate only top-level elements to avoid duplicates
 	const topLevel = getTopLevelSelectedElements();
 
 	const cleanedHTML = topLevel.map((el) => cleanHtmlTree(el)).join("\n\n");
@@ -341,7 +323,6 @@ async function handleGenerate(): Promise<void> {
 		await navigator.clipboard.writeText(wrapped);
 		console.log("[HTML Capture] HTML copied to clipboard");
 
-		// Feedback visuel
 		if (toolbarPanel) {
 			const generateButton = toolbarPanel.querySelector(
 				"#html-capture-generate",
@@ -368,14 +349,14 @@ async function handleGenerate(): Promise<void> {
 			}, 2000);
 		}
 
-		// Sortir du mode sélection après copie
+		// Exit selection mode after copy
 		setTimeout(() => {
 			exitSelectionMode();
 		}, 1000);
 	} catch (error) {
 		console.error("[HTML Capture] Failed to copy:", error);
 
-		// Feedback visuel d'erreur (pas d'alert)
+		// Visual error feedback without alert
 		if (toolbarPanel) {
 			const generateButton = toolbarPanel.querySelector(
 				"#html-capture-generate",
@@ -411,7 +392,6 @@ async function handleGenerate(): Promise<void> {
 	}
 }
 
-// Entrer en mode sélection
 function enterSelectionMode(): void {
 	if (selectionMode) return;
 
@@ -425,40 +405,32 @@ function enterSelectionMode(): void {
 	document.addEventListener("click", handleLinkClick, true);
 }
 
-// Sortir du mode sélection
 function exitSelectionMode(): void {
 	if (!selectionMode) return;
 
-	// Nettoyer le hover
 	if (lastHovered) {
 		lastHovered.classList.remove("html-capture-hover");
 		lastHovered = null;
 	}
 
-	// Nettoyer la sélection
 	for (const el of selectedElements) {
 		el.classList.remove("html-capture-selected");
 	}
 	selectedElements = [];
 
-	// Retirer les listeners
 	document.removeEventListener("mousemove", handleMouseMove, true);
 	document.removeEventListener("mousedown", handleClick, true);
 	document.removeEventListener("click", handleLinkClick, true);
 
-	// Retirer la classe du document
 	document.documentElement.classList.remove("html-capture-selection-mode");
 
-	// Supprimer le panneau
 	removeToolbarPanel();
 
-	// Retirer les styles injectés
 	removeStyles();
 
 	selectionMode = false;
 }
 
-// Toggle du mode
 function toggleMode(): void {
 	if (selectionMode) {
 		exitSelectionMode();
@@ -467,7 +439,6 @@ function toggleMode(): void {
 	}
 }
 
-// Écouter les messages du background
 ext.runtime.onMessage.addListener((msg: unknown) => {
 	if (
 		typeof msg === "object" &&

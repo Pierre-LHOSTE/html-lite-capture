@@ -38,9 +38,20 @@ const CONTAINER_TAGS = toLowerSet(["div", "span"]);
 const REMOVABLE_IF_EMPTY = toLowerSet(["div", "span"]);
 
 const ATTRIBUTES_POLICY: Record<string, Set<string>> = {
-	img: new Set(["src", "alt"]),
-	a: new Set(["href"]),
-	video: new Set(["poster"]),
+	// Links/media
+	img: new Set(["src", "alt", "title"]),
+	a: new Set(["href", "title"]),
+	video: new Set(["src", "poster", "title"]),
+	audio: new Set(["src", "title"]),
+	source: new Set(["src"]),
+	// Forms
+	input: new Set(["type", "name", "value", "checked", "placeholder"]),
+	select: new Set(["name", "value"]),
+	option: new Set(["value", "selected"]),
+	textarea: new Set(["name", "placeholder"]),
+	button: new Set(["type", "name", "value"]),
+	label: new Set(["for"]),
+	form: new Set(["name"]),
 };
 
 interface AttributeHookContext {
@@ -51,14 +62,11 @@ interface AttributeHookContext {
 }
 
 function KEEP_ATTRIBUTE_HOOK(ctx: AttributeHookContext): boolean {
-	// keep aria-label everywhere
-	if (ctx.name === "aria-label") return true;
-	// keep all data-* everywhere
-	if (ctx.name.indexOf("data-") === 0) return true;
+	if (ctx.name.startsWith("aria-")) return true;
+	if (ctx.name === "role") return true;
 	return false;
 }
 
-// Flags de comportement
 const FLAGS: Readonly<{
 	collapseSameTagChains: boolean;
 	unwrapLoneContainerAroundNon: boolean;
@@ -70,8 +78,8 @@ const FLAGS: Readonly<{
 	collapseSameTagChains: true, // <p><p>... -> <p>...
 	unwrapLoneContainerAroundNon: true, // <div><p>...</p></div> -> <p>...</p>
 	unwrapLoneContainerUnderNon: true, // <p><div>...</div></p> -> <p>...</p>
-	trimWhitespaceText: true, // supprime les textes uniquement blancs
-	stripComments: true, // supprime les commentaires <!-- ... -->
+	trimWhitespaceText: true,
+	stripComments: true,
 	collapseContainerChains: true, // <div><div>...</div></div> -> <div>...
 };
 
@@ -89,7 +97,7 @@ export function cleanHtmlTree(rootElement: Element): string {
 	const clone = rootElement.cloneNode(true) as Element;
 	wrapper.appendChild(clone);
 	sanitize(wrapper);
-	// On renvoie seulement ce qu'il y avait dans le wrapper
+	// Return only the inner HTML, not the wrapper itself
 	return wrapper.innerHTML;
 }
 
@@ -101,13 +109,11 @@ function sanitize(node: Node): void {
 function walk(node: Node | null): void {
 	if (!node) return;
 
-	// Remove comment nodes
 	if (node.nodeType === Node.COMMENT_NODE) {
 		if (FLAGS.stripComments) removeNode(node);
 		return;
 	}
 
-	// Handle text nodes
 	if (node.nodeType === Node.TEXT_NODE) {
 		if (FLAGS.trimWhitespaceText && !/\S/.test(node.nodeValue || "")) {
 			removeNode(node);
@@ -115,7 +121,6 @@ function walk(node: Node | null): void {
 		return;
 	}
 
-	// Only proceed with element nodes
 	if (node.nodeType !== Node.ELEMENT_NODE) return;
 
 	const element = node as Element;
@@ -140,7 +145,7 @@ function walk(node: Node | null): void {
 	// 4) Whitespace cleanup at element level
 	if (FLAGS.trimWhitespaceText) {
 		removeWhitespaceTextNodes(element);
-		element.normalize(); // merge adjacent text nodes
+		element.normalize();
 	}
 
 	// 5) Collapses
@@ -233,7 +238,6 @@ function collapseSameTagChains(node: Node): void {
 	let child = getOnlyElementChildIgnoringWhitespace(node);
 
 	while (child?.tagName && child.tagName.toLowerCase() === tag) {
-		// Move grandchildren up
 		while (child.firstChild) {
 			node.appendChild(child.firstChild);
 		}
@@ -256,7 +260,6 @@ function collapseContainers(node: Node): void {
 			isElement(only) &&
 			CONTAINER_TAGS.has(only.tagName.toLowerCase())
 		) {
-			// Move grandchildren up, then remove inner container
 			while (only.firstChild) {
 				node.insertBefore(only.firstChild, only);
 			}
