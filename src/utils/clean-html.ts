@@ -61,8 +61,14 @@ interface AttributeHookContext {
 	element: Element;
 }
 
+const ALLOWED_ARIA_ATTRIBUTES = new Set([
+	"aria-label",
+	"aria-valuetext",
+	"aria-placeholder",
+]);
+
 function KEEP_ATTRIBUTE_HOOK(ctx: AttributeHookContext): boolean {
-	if (ctx.name.startsWith("aria-")) return true;
+	if (ALLOWED_ARIA_ATTRIBUTES.has(ctx.name)) return true;
 	if (ctx.name === "role") return true;
 	return false;
 }
@@ -181,6 +187,15 @@ function stripAttributesWithPolicy(el: Element): void {
 					element: el,
 				});
 			} catch {
+				keep = false;
+			}
+		}
+
+		// Remove attributes redundant with element text content
+		if (keep) {
+			const textContent = el.textContent?.trim() || "";
+			const attrValue = attr.value.trim();
+			if (textContent && attrValue === textContent) {
 				keep = false;
 			}
 		}

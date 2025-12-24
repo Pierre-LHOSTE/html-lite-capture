@@ -127,7 +127,7 @@ Règles non négociables.
     - Pas de normalisation des espaces dans le texte.
     - Pas de `data-*`.
     - Allowlist d'attributs (déjà fixée):
-        - Globaux: `aria-*`, `role`
+        - Globaux: `role`, `aria-label`, `aria-valuetext`, `aria-placeholder`
         - Liens/média: `href`, `src`, `alt`, `title`
         - Formulaires: `value`, `name`, `checked`, `selected`, `placeholder`, `type`
     - Wrappers: suppression seulement si vide ou à enfant unique.
